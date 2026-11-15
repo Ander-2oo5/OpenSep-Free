@@ -1,0 +1,74 @@
+# Node / pnpm
+node_modules/
+.pnpm-store/
+.npm/
+dist/
+.vite/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python environments and caches
+.venv/
+.audiosep-venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Downloaded AI engines, checkpoints and model weights
+vendor/AudioSep/
+checkpoint/
+checkpoints/
+models/
+weights/
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.safetensors
+
+# Runtime data: SQLite, uploads, generated stems and archives
+data/
+uploads/
+outputs/
+artifacts/
+temp/
+tmp/
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Tests and reverse-engineering evidence
+playwright-report/
+test-results/
+.rea/
+
+# Editor and operating-system files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# General temporary files
+*.log
+*.tmp
+*.temp
+~$*
