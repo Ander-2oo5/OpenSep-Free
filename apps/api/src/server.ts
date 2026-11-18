@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { createReadStream } from "node:fs";
+import { createReadStream, existsSync } from "node:fs";
 import { mkdir, rm, stat } from "node:fs/promises";
 import { basename, dirname, extname, resolve } from "node:path";
 import { pipeline } from "node:stream/promises";
@@ -73,6 +73,21 @@ function contentDisposition(filename: string): string {
   const ascii = filename.replace(/[^\x20-\x7e]/g, "_").replace(/["\\]/g, "_");
   return `attachment; filename="${ascii}"; filename*=UTF-8''${encodeURIComponent(filename)}`;
 }
+
+const webMimeTypes: Readonly<Record<string, string>> = {
+  ".css": "text/css; charset=utf-8",
+  ".html": "text/html; charset=utf-8",
+  ".ico": "image/x-icon",
+  ".jpeg": "image/jpeg",
+  ".jpg": "image/jpeg",
+  ".js": "text/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".png": "image/png",
+  ".svg": "image/svg+xml",
+  ".webp": "image/webp",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+};
 
 export async function buildServer(options: ServerOptions = {}): Promise<FastifyInstance> {
   const config = options.config ?? loadConfig();
@@ -369,6 +384,31 @@ export async function buildServer(options: ServerOptions = {}): Promise<FastifyI
     }
     await archive.finalize();
   });
+
+  const webRoot = resolve(config.rootDir, "apps", "web", "dist");
+  const webIndex = resolve(webRoot, "index.html");
+  if (existsSync(webIndex)) {
+    const serveWeb = async (request: FastifyRequest, reply: FastifyReply) => {
+      const pathname = decodeURIComponent(new URL(request.raw.url ?? "/", "http://127.0.0.1").pathname);
+      if (pathname === "/api" || pathname.startsWith("/api/")) {
+        return reply.status(404).send(errorBody(request, new ApiError(404, "API_ROUTE_NOT_FOUND", "No existe la ruta solicitada.")));
+      }
+      const relativePath = pathname.replace(/^\/+/, "");
+      const requestedPath = relativePath ? assertPathWithin(webRoot, resolve(webRoot, relativePath)) : webIndex;
+      let filePath = requestedPath;
+      try {
+        const file = await stat(requestedPath);
+        if (!file.isFile()) filePath = webIndex;
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+        filePath = webIndex;
+      }
+      reply.header("content-type", webMimeTypes[extname(filePath).toLowerCase()] ?? "application/octet-stream");
+      return reply.send(createReadStream(filePath));
+    };
+    app.get("/", serveWeb);
+    app.get("/*", serveWeb);
+  }
 
   return app;
 }

@@ -59,7 +59,7 @@ export function loadConfig(): OpenSepConfig {
     host,
     port,
     publicUrl: process.env.OPENSEP_PUBLIC_URL ?? `http://${host}:${port}`,
-    allowedOrigins: (process.env.OPENSEP_ALLOWED_ORIGINS ?? "http://127.0.0.1:5173,http://localhost:5173")
+    allowedOrigins: (process.env.OPENSEP_ALLOWED_ORIGINS ?? "http://127.0.0.1:5173,http://localhost:5173,http://127.0.0.1:8787,http://localhost:8787")
       .split(",").map((origin) => origin.trim()).filter(Boolean),
     maxUploadBytes: readPositiveInteger("OPENSEP_MAX_UPLOAD_BYTES", 1_048_576_000),
     maxRemoteBytes: readPositiveInteger("OPENSEP_MAX_REMOTE_BYTES", 1_048_576_000),

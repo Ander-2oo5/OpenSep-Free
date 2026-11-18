@@ -23,6 +23,8 @@ async function fixture() {
     audioSepPython: join(root, "audiosep-python.exe"), audioSepRoot: join(root, "AudioSep"), audioSepAdapter: join(root, "audiosep_adapter.py"),
   };
   await (await import("node:fs/promises")).mkdir(config.dataDir, { recursive: true });
+  await mkdir(join(root, "apps", "web", "dist"), { recursive: true });
+  await writeFile(join(root, "apps", "web", "dist", "index.html"), "<!doctype html><title>OpenSep</title><main>Aplicación local</main>");
   const repository = new JobRepository(config.databasePath);
   const capabilities: CapabilitiesResponse = {
     checkedAt: new Date().toISOString(), python: true, ffmpeg: true, ffprobe: true, processor: true,
@@ -33,6 +35,24 @@ async function fixture() {
 }
 
 describe("API", () => {
+  it("serves the production web app and preserves API 404 responses", async () => {
+    const { app } = await fixture();
+    const home = await app.inject({ method: "GET", url: "/" });
+    expect(home.statusCode).toBe(200);
+    expect(home.headers["content-type"]).toContain("text/html");
+    expect(home.body).toContain("Aplicación local");
+    const spa = await app.inject({ method: "GET", url: "/jobs/example" });
+    expect(spa.statusCode).toBe(200);
+    expect(spa.body).toContain("Aplicación local");
+    const missingApi = await app.inject({ method: "GET", url: "/api/does-not-exist" });
+    expect(missingApi.statusCode).toBe(404);
+    expect(missingApi.json().error.code).toBe("API_ROUTE_NOT_FOUND");
+    const apiRoot = await app.inject({ method: "GET", url: "/api" });
+    expect(apiRoot.statusCode).toBe(404);
+    expect(apiRoot.json().error.code).toBe("API_ROUTE_NOT_FOUND");
+    await app.close();
+  });
+
   it("returns a stable not-found error", async () => {
     const { app } = await fixture();
     const response = await app.inject({ method: "GET", url: "/api/jobs/00000000-0000-0000-0000-000000000000" });

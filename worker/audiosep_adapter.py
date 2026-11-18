@@ -26,14 +26,18 @@ def main() -> int:
     sys.path.insert(0, str(root))
     os.chdir(root)
     import torch
-    from pipeline import build_audiosep, inference
+    from pipeline import build_audiosep
+    try:
+        from pipeline import separate_audio as run_audiosep
+    except ImportError:
+        from pipeline import inference as run_audiosep
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = build_audiosep(str(config), str(checkpoint), device)
     args.output_dir.mkdir(parents=True, exist_ok=True)
     target = args.output_dir / f"{args.stem}.wav"
     other = args.output_dir / "other.wav"
-    inference(model, str(args.input.resolve(strict=True)), args.query, str(target), device, use_chunk=True)
+    run_audiosep(model, str(args.input.resolve(strict=True)), args.query, str(target), device, use_chunk=True)
 
     subtraction = (
         "[0:a]aformat=sample_rates=32000:channel_layouts=mono[original];"

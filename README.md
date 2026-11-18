@@ -31,7 +31,6 @@ Todo el procesamiento se realiza en tu propia computadora mediante [Demucs](http
 
 - Windows 10 u 11 de 64 bits.
 - Conexión a Internet durante la instalación y la primera descarga de modelos.
-- `winget`, incluido normalmente con **Instalador de aplicaciones** de Microsoft.
 - Al menos 10 GB de espacio libre; se recomiendan 15 GB.
 - 8 GB de memoria RAM como mínimo; 16 GB recomendados.
 
@@ -50,40 +49,42 @@ Demucs descarga sus modelos la primera vez que se utiliza cada modelo. AudioSep 
 
 ## Instalación automática recomendada
 
-### 1. Descargar el proyecto
+### 1. Descargar el instalador
 
-Descarga el repositorio como ZIP desde GitHub y descomprímelo, o clónalo:
+Descarga `OpenSep-Setup.exe` desde la sección **Releases** del repositorio de GitHub. El usuario final no necesita descargar el código fuente ni instalar Git.
+
+Los desarrolladores sí pueden clonar el repositorio:
 
 ```powershell
 git clone URL-DE-TU-REPOSITORIO
 cd mvsep
 ```
 
-### 2. Ejecutar el instalador
+### 2. Ejecutar el instalador `.exe`
 
 Haz doble clic en:
 
 ```text
-Instalar-OpenSep.cmd
+OpenSep-Setup.exe
 ```
 
 También puedes ejecutarlo desde PowerShell:
 
 ```powershell
-.\Instalar-OpenSep.cmd
+.\OpenSep-Setup.exe
 ```
 
-El proceso puede tardar porque descarga Python, FFmpeg, PyTorch y los modelos. No cierres la ventana hasta ver el mensaje `Instalación terminada`.
+El instalador ya contiene Node.js, Python y FFmpeg. Durante la instalación descarga PyTorch, Demucs, AudioSep y los modelos verificados. Puede descargar entre 5 y 8 GB; no cierres el asistente hasta que termine.
 
 ### 3. Iniciar OpenSep
 
-Después de instalar, haz doble clic en:
+Después de instalar, utiliza el acceso directo creado en el escritorio o en el menú Inicio:
 
 ```text
-Iniciar-OpenSep.cmd
+OpenSep
 ```
 
-El iniciador levanta la web, la API y el procesador de trabajos, y abre automáticamente:
+El iniciador ejecuta silenciosamente la web, la API y el procesador de trabajos, y abre automáticamente:
 
 ```text
 http://127.0.0.1:5173
@@ -208,8 +209,8 @@ worker/                 Procesador Python de Demucs y adaptador AudioSep
 scripts/                Instalador de Windows
 vendor/AudioSep/        AudioSep descargado; no se sube a Git
 data/                   Base de datos y resultados; no se sube a Git
-Instalar-OpenSep.cmd    Instalación automática
-Iniciar-OpenSep.cmd     Inicio automático
+setup/OpenSep.iss       Definición del instalador de Windows
+dist-installer/         OpenSep-Setup.exe generado localmente
 ```
 
 ## Configuración avanzada
@@ -273,7 +274,7 @@ corepack pnpm install
 
 ### `node`, `py` o `ffmpeg` no se reconoce
 
-Cierra y abre nuevamente PowerShell después de ejecutar el instalador. Si continúa, vuelve a ejecutar `Instalar-OpenSep.cmd` y revisa que `winget` haya terminado correctamente.
+El instalador `.exe` no depende de esos comandos globales. Para trabajar desde el código fuente, cierra y abre PowerShell después de instalarlos manualmente.
 
 ### El procesador aparece como no disponible
 
@@ -305,7 +306,7 @@ La separación mediante inteligencia artificial consume mucha CPU y memoria. Uti
 
 ### Una descarga de modelo se interrumpió
 
-Verifica Internet y espacio libre, y vuelve a ejecutar `Instalar-OpenSep.cmd`. El checkpoint de AudioSep se valida mediante SHA-256 para evitar utilizar un archivo incompleto o alterado.
+Verifica Internet y espacio libre, y vuelve a ejecutar `OpenSep-Setup.exe` para reparar la instalación. AudioSep y sus checkpoints se validan mediante SHA-256 para evitar utilizar archivos incompletos o alterados. Los registros se guardan en `%LOCALAPPDATA%\OpenSep\logs`.
 
 ## Subir el proyecto a GitHub
 
@@ -320,7 +321,24 @@ git remote add origin URL-DE-TU-REPOSITORIO.git
 git push -u origin main
 ```
 
-Cuando alguien clone el repositorio deberá ejecutar `Instalar-OpenSep.cmd`, porque los modelos y las dependencias pesadas no se almacenan en GitHub.
+Los usuarios finales deben descargar `OpenSep-Setup.exe` desde GitHub Releases. Los modelos y las dependencias pesadas no se almacenan dentro del repositorio.
+
+## Crear el instalador de Windows
+
+En la computadora de desarrollo instala Inno Setup 6 y ejecuta:
+
+```powershell
+winget install --id JRSoftware.InnoSetup --exact
+npm run package:windows
+```
+
+El resultado se genera en:
+
+```text
+dist-installer\OpenSep-Setup.exe
+```
+
+El script de compilación descarga Node.js y Python desde sus sitios oficiales, valida sus hashes, incluye FFmpeg y compila la aplicación web antes de crear el instalador.
 
 ## Seguridad y privacidad
 

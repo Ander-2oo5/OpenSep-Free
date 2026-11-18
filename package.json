@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "corepack pnpm -r --parallel --filter @opensep/api --filter @opensep/runner --filter @opensep/web dev",
     "build": "corepack pnpm -r build",
+    "package:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-windows-installer.ps1",
     "test": "corepack pnpm -r test",
     "typecheck": "corepack pnpm -r typecheck",
     "start": "corepack pnpm --filter @opensep/api start"
